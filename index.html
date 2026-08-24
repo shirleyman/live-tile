@@ -373,6 +373,8 @@ let objectURL = null;
 let watching = false;
 let pollTimer = null;
 let watchStatusMessage = null;
+let wheelSuppressedUntilIdle = false;
+let wheelIdleTimer = null;
 let gridVisible = false;
 let gridLineColor = config.DARK_GRID_COLOR;
 let imageSize = { width: 0, height: 0 };
@@ -553,6 +555,8 @@ function resetState() {
 }
 
 function resetView() {
+  wheelSuppressedUntilIdle = true;
+  clearTimeout(wheelIdleTimer);
   panOffset = { x: 0, y: 0 };
   if (objectURL && imageSize.width > 0) {
     const stageRect = stage.getBoundingClientRect();
@@ -902,6 +906,16 @@ window.addEventListener('keydown', (e)=>{
 
 stage.addEventListener('wheel', (e)=>{
   e.preventDefault();
+
+  if (wheelSuppressedUntilIdle) {
+    clearTimeout(wheelIdleTimer);
+    wheelIdleTimer = setTimeout(() => {
+      wheelSuppressedUntilIdle = false;
+      wheelIdleTimer = null;
+    }, 120);
+    return;
+  }
+
   const delta = e.deltaY;
   if(delta === 0) return;
   if(delta < 0){
