@@ -375,6 +375,8 @@ let pollTimer = null;
 let watchStatusMessage = null;
 let wheelSuppressedUntilIdle = false;
 let wheelIdleTimer = null;
+let wheelSuppressionStartedAt = 0;
+let lastSuppressedWheelMagnitude = 0;
 let gridVisible = false;
 let gridLineColor = config.DARK_GRID_COLOR;
 let imageSize = { width: 0, height: 0 };
@@ -556,6 +558,8 @@ function resetState() {
 
 function resetView() {
   wheelSuppressedUntilIdle = true;
+  wheelSuppressionStartedAt = performance.now();
+  lastSuppressedWheelMagnitude = 0;
   clearTimeout(wheelIdleTimer);
   wheelIdleTimer = setTimeout(() => {
     wheelSuppressedUntilIdle = false;
@@ -911,13 +915,25 @@ window.addEventListener('keydown', (e)=>{
 stage.addEventListener('wheel', (e)=>{
   e.preventDefault();
 
+  const magnitude = Math.abs(e.deltaY);
+
   if (wheelSuppressedUntilIdle) {
-    clearTimeout(wheelIdleTimer);
-    wheelIdleTimer = setTimeout(() => {
+    const elapsed = performance.now() - wheelSuppressionStartedAt;
+    const looksLikeNewGesture = lastSuppressedWheelMagnitude > 0 && magnitude > lastSuppressedWheelMagnitude * 1.5;
+
+    if (looksLikeNewGesture || elapsed > 300) {
       wheelSuppressedUntilIdle = false;
+      clearTimeout(wheelIdleTimer);
       wheelIdleTimer = null;
-    }, 120);
-    return;
+    } else {
+      lastSuppressedWheelMagnitude = magnitude;
+      clearTimeout(wheelIdleTimer);
+      wheelIdleTimer = setTimeout(() => {
+        wheelSuppressedUntilIdle = false;
+        wheelIdleTimer = null;
+      }, 120);
+      return;
+    }
   }
 
   const delta = e.deltaY;
