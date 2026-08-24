@@ -894,7 +894,7 @@ window.addEventListener('keydown', (e)=>{
   } else if (e.key === 'g' || e.key === 'G') {
     e.preventDefault();
     toggleGrid();
-  } else if (e.key === 'r' || e.key === 'R') {
+  } else if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey) {
     e.preventDefault();
     resetView();
   }
