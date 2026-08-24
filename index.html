@@ -372,6 +372,7 @@ let lastModified = 0;
 let objectURL = null;
 let watching = false;
 let pollTimer = null;
+let watchStatusMessage = null;
 let gridVisible = false;
 let gridLineColor = config.DARK_GRID_COLOR;
 let imageSize = { width: 0, height: 0 };
@@ -457,13 +458,13 @@ function updateMetaFile(name){
   noFileIcon.style.display = 'none';
 
   if (name) { // File is loaded
-    fileNameText.textContent = name;
+    fileNameText.textContent = watchStatusMessage ? `${name} — Live reload stopped` : name;
     if (watching) {
       fileIcon.style.display = 'inline';
       fileStatus.title = 'Live reload enabled. Image will update when file changes are detected.';
     } else {
       warningIcon.style.display = 'inline';
-      fileStatus.title = 'Live reload not supported for this browser.';
+      fileStatus.title = watchStatusMessage || 'Live reload not supported for this browser.';
     }
   } else { // No file is loaded
     fileNameText.textContent = 'No file';
@@ -594,12 +595,16 @@ function finalizeImageLoad(resetView) {
   }
 }
 
-function refreshTiles(newUrl, { resetView = false } = {}){
-  if(objectURL && objectURL !== newUrl){ URL.revokeObjectURL(objectURL); }
-  objectURL = newUrl;
-
+function refreshTiles(newUrl, { resetView = false, beforeCommit = null, onError = null } = {}){
+  const previousUrl = objectURL;
   const img = new Image();
+
   img.onload = () => {
+    if (beforeCommit) beforeCommit();
+    if (previousUrl && previousUrl !== newUrl) {
+      URL.revokeObjectURL(previousUrl);
+    }
+    objectURL = newUrl;
     imageSize = { width: img.naturalWidth, height: img.naturalHeight };
 
     const canvas = document.getElementById('colorSampler');
@@ -626,39 +631,57 @@ function refreshTiles(newUrl, { resetView = false } = {}){
     gridLineColor = (avgLuminance < config.LUMINANCE_THRESHOLD) ? config.LIGHT_GRID_COLOR : config.DARK_GRID_COLOR;
 
     finalizeImageLoad(resetView);
+    dropHint.style.display = 'none';
+    updateControlsState();
   };
-  img.onerror = () => {
-    console.error("Failed to load image for color analysis.");
-    gridLineColor = config.DARK_GRID_COLOR;
-    updateStageBackground();
-  }
-  img.src = newUrl;
 
-  dropHint.style.display = 'none';
-  updateControlsState();
+  img.onerror = () => {
+    console.error('Failed to load image. Keeping the current image.');
+    URL.revokeObjectURL(newUrl);
+    if (onError) onError();
+  };
+
+  img.src = newUrl;
 }
 
 /* ========== File Handling & System ========== */
 async function loadFileFromHandle(handle) {
-  fileHandle = handle;
-  if (!fileHandle) return;
+  if (!handle) return false;
 
   try {
-    const permission = await fileHandle.queryPermission({ mode: 'read' });
+    let permission = await handle.queryPermission({ mode: 'read' });
     if (permission !== 'granted') {
-      await fileHandle.requestPermission({ mode: 'read' });
+      permission = await handle.requestPermission({ mode: 'read' });
+    }
+    if (permission !== 'granted') {
+      alert('Permission to read this file was not granted.');
+      return false;
     }
 
-    const file = await fileHandle.getFile();
-    lastModified = file.lastModified || Date.now();
+    const file = await handle.getFile();
+    const nextLastModified = file.lastModified || Date.now();
     const url = URL.createObjectURL(file);
-    refreshTiles(url, { resetView: true });
-    watching = true;
-    updateMetaFile(fileHandle.name);
-    startPolling();
+
+    refreshTiles(url, {
+      resetView: true,
+      beforeCommit: () => {
+        stopPolling();
+        fileHandle = handle;
+        lastModified = nextLastModified;
+        watchStatusMessage = null;
+        watching = true;
+        updateMetaFile(fileHandle.name);
+        startPolling();
+      },
+      onError: () => {
+        alert('Could not load the selected image. The current image has been kept.');
+      }
+    });
+    return true;
   } catch (err) {
-    console.error('Error loading file:', err);
-    alert('Could not load the file. Please try again.');
+    console.error('Error reading selected file:', err);
+    alert('Could not read the selected file. Please try again.');
+    return false;
   }
 }
 
@@ -668,6 +691,7 @@ function startPolling() {
     return;
   }
 
+  watchStatusMessage = null;
   watching = true;
   updateMetaFile(fileHandle.name);
   if (pollTimer) clearTimeout(pollTimer);
@@ -678,13 +702,18 @@ function startPolling() {
     try {
       const f = await fileHandle.getFile();
       if (f && f.lastModified !== lastModified) {
-        lastModified = f.lastModified;
+        const nextLastModified = f.lastModified;
         const url = URL.createObjectURL(f);
-        refreshTiles(url, { resetView: false });
+        refreshTiles(url, {
+          resetView: false,
+          beforeCommit: () => {
+            lastModified = nextLastModified;
+          }
+        });
       }
     } catch (err) {
       console.warn('Polling error', err);
-      stopPolling();
+      stopPolling('Live reload stopped because the file could no longer be read. The current image is still available.');
       return;
     }
 
@@ -696,12 +725,13 @@ function startPolling() {
   pollTimer = setTimeout(poll, config.POLL_MS);
 }
 
-function stopPolling() {
+function stopPolling(statusMessage = null) {
   if (pollTimer) {
     clearTimeout(pollTimer);
     pollTimer = null;
   }
   watching = false;
+  watchStatusMessage = statusMessage;
   updateMetaFile(fileHandle ? fileHandle.name || 'file' : null);
 }
 
@@ -733,12 +763,19 @@ window.addEventListener('drop', async ev => {
 
   const file = dt.files && dt.files[0];
   if (file && file.type.startsWith('image/')) {
-    stopPolling();
-    fileHandle = null;
-
     const url = URL.createObjectURL(file);
-    refreshTiles(url, { resetView: true });
-    updateMetaFile(file.name);
+    refreshTiles(url, {
+      resetView: true,
+      beforeCommit: () => {
+        stopPolling();
+        fileHandle = null;
+        watchStatusMessage = null;
+        updateMetaFile(file.name);
+      },
+      onError: () => {
+        alert('Could not load the dropped image. The current image has been kept.');
+      }
+    });
   } else {
     alert('Please drop an image file (PNG / JPEG).');
   }
@@ -759,7 +796,9 @@ chooseFileBtn.addEventListener('click', async () => {
         await loadFileFromHandle(handle);
       }
     } catch (err) {
-      console.error('File picker cancelled or failed', err);
+      if (err && err.name === 'AbortError') return;
+      console.error('File picker failed', err);
+      alert('Could not open the file picker. Please try again.');
     }
   } else {
     fallbackFileInput.click();
@@ -769,12 +808,19 @@ chooseFileBtn.addEventListener('click', async () => {
 fallbackFileInput.addEventListener('change', (e) => {
   const file = e.target.files && e.target.files[0];
   if (file) {
-    stopPolling();
-    fileHandle = null;
-
     const url = URL.createObjectURL(file);
-    refreshTiles(url, { resetView: true });
-    updateMetaFile(file.name);
+    refreshTiles(url, {
+      resetView: true,
+      beforeCommit: () => {
+        stopPolling();
+        fileHandle = null;
+        watchStatusMessage = null;
+        updateMetaFile(file.name);
+      },
+      onError: () => {
+        alert('Could not load the selected image. The current image has been kept.');
+      }
+    });
 
     // Reset the input so the same file can be chosen again
     fallbackFileInput.value = '';
