@@ -5,11 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>LiveTile - Seamless Background Visualizer</title>
 <style>
+  /* ========== Root Variables ========== */
   :root {
     --grid-n: 3;
-    --gap: 0px;
+    --gap: 0px; /* no gutter by default */
     --overlay-opacity: 0.75;
   }
+
+  /* ========== General ========== */
   html,body{
     height:100%;
     margin:0;
@@ -18,7 +21,10 @@
     color: #eee;
     -webkit-font-smoothing:antialiased;
   }
+
   input[type="file"] { display:none; }
+
+  /* ========== Layout ========== */
   .topbar {
     position:fixed;
     left:0; right:0;
@@ -28,11 +34,13 @@
     pointer-events:none;
     z-index:30;
   }
+
   .stage-wrap {
     position:absolute;
     inset:0;
     box-sizing:border-box;
   }
+
   .stage {
     width:100%;
     height: 100%;
@@ -41,6 +49,8 @@
     touch-action: none;
     position:relative;
   }
+
+  /* ========== Components ========== */
   .info {
     background: rgba(0,0,0,var(--overlay-opacity));
     padding:8px 12px;
@@ -53,6 +63,7 @@
     min-width: 140px;
     justify-content:center;
   }
+
   .drop-hint {
     position:absolute;
     inset:0;
@@ -67,11 +78,13 @@
     text-align:center;
     padding:12px;
   }
+
   .drop-hint svg {
     width: 48px;
     height: 48px;
     opacity: 0.4;
   }
+
   .zoom-overlay {
     position:absolute;
     left:50%;
@@ -87,7 +100,11 @@
     transition:opacity 200ms ease;
     z-index:40;
   }
-  #colorSampler { display: none; }
+
+  #colorSampler {
+    display: none;
+  }
+
   .instructions {
     position:fixed;
     right:12px;
@@ -103,30 +120,40 @@
     align-items: flex-start;
     gap: 8px;
   }
+
   #fileName {
     display: flex;
     align-items: center;
     gap: 6px;
   }
+
   .instructions-header {
     font-weight: 700;
     margin-bottom: 6px;
   }
+
   .attribution {
     margin-top: 10px;
     font-size: 12px;
   }
+
+  /* ========== Controls & Links ========== */
   .controls {
     display:flex;
     gap:8px;
     align-items:center;
   }
+
   .zoom-control-group {
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .zoom-slider { width: 80px; }
+
+  .zoom-slider {
+    width: 80px;
+  }
+
   .view-controls {
     display: flex;
     gap: 4px;
@@ -134,6 +161,7 @@
     margin-left: 4px;
     padding-left: 12px;
   }
+
   .file-btn {
     background: #1f6feb;
     color:white;
@@ -143,6 +171,7 @@
     font-weight:600;
     border:none;
   }
+
   .watch-btn {
     background:#2a2a2a;
     color:#ddd;
@@ -152,6 +181,7 @@
     cursor:pointer;
     font-weight:600;
   }
+
   .icon-btn {
     background: #2a2a2a;
     border: 1px solid rgba(255,255,255,0.1);
@@ -162,6 +192,7 @@
     display: flex;
     align-items: center;
   }
+
   .zoom-display {
     background: #2a2a2a;
     color: #eee;
@@ -174,6 +205,7 @@
     display: inline-block;
     vertical-align: middle;
   }
+
   .credit-link {
     display: flex;
     align-items: center;
@@ -181,38 +213,58 @@
     color: #eee;
     text-decoration: none;
   }
+
+  /* ========== States & Modifiers ========== */
   .zoom-overlay.show { opacity:1; }
   .small { font-size:12px; opacity:0.9; }
-  .icon-btn:hover { background: #3a3a3a; }
+
+  .icon-btn:hover {
+    background: #3a3a3a;
+  }
+
   .icon-btn.active {
     background: #1f6feb;
     border-color: #1f6feb;
   }
+
   button:disabled,
   select:disabled,
   input[type="range"]:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
-  .zoom-display.disabled { opacity: 0.4; }
-  .credit-link:hover { color: #1f6feb; }
+
+  .zoom-display.disabled {
+    opacity: 0.4;
+  }
+
+  .credit-link:hover {
+    color: #1f6feb;
+  }
+
   .credit-link b {
     font-weight: 600;
     text-decoration: underline;
   }
+
+  /* ========== Responsive ========== */
   @media (max-width:600px){
     .topbar .info { font-size:13px; padding:6px 10px; }
     .zoom-overlay { font-size:18px; }
-    .zoom-slider { display: none; }
+        .zoom-slider { display: none; } /* Hide slider on small screens, but show value */
   }
 </style>
+
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HK3YMLX83"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
+
   gtag('config', 'G-3HK3YMLX83');
 </script>
+
 </head>
 <body>
   <div class="topbar">
@@ -224,7 +276,10 @@
       </div>
       <div class="view-controls">
         <button id="gridToggleBtn" class="icon-btn" title="Show/Hide Grid (G)">
-          <svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1" fill="none"><rect x="0.5" y="0.5" width="15" height="15"/><path d="M0 5.5H16M0 10.5H16M5.5 0V16M10.5 0V16"/></svg>
+          <svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1" fill="none">
+            <rect x="0.5" y="0.5" width="15" height="15"/>
+            <path d="M0 5.5H16M0 10.5H16M5.5 0V16M10.5 0V16"/>
+          </svg>
         </button>
         <button id="resetViewBtn" class="icon-btn" title="Reset View (R)">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 0h5v1H1v4H0V0z M16 0h-5v1h4v4h1V0z M0 16h5v-1H1v-4H0v5z M16 16h-5v-1h4v-4h1v5z"/></svg>
@@ -236,26 +291,43 @@
       </div>
     </div>
   </div>
+
   <div class="stage-wrap">
-    <div id="stage" class="stage" tabindex="0" aria-label="Tiled image stage">
+    <div id="stage" class="stage" tabindex="0" aria-label="Tiled image stage" >
       <div class="drop-hint" id="dropHint">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
         <span>Drag & drop an image here, or click "Choose file" to begin.</span>
       </div>
       <div class="zoom-overlay" id="zoomOverlay">3 × 3</div>
     </div>
   </div>
+
   <div class="instructions">
     <div id="fileStatus">
       <div id="fileName" class="small">
         <svg id="fileIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        <svg id="warningIcon" width="14" height="14" viewBox="0 0 24 24"><path d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" fill="currentColor"/></svg>
+        <svg id="warningIcon" width="14" height="14" viewBox="0 0 24 24">
+          <path d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" fill="currentColor"/>
+        </svg>
         <svg id="noFileIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
         <span id="fileNameText"></span>
       </div>
     </div>
-    <div class="desktop-instructions"><div class="small"><b>Pan:</b> Hold & Drag</div><div class="small"><b>Zoom:</b> Wheel or +/-</div><div class="small"><b>Show/Hide Grid:</b> G</div><div class="small"><b>Reset View:</b> R</div></div>
-    <div class="mobile-instructions"><div class="small"><b>Pan:</b> Drag with one finger</div><div class="small"><b>Zoom:</b> Pinch with two fingers</div></div>
+    <div class="desktop-instructions">
+      <div class="small"><b>Pan:</b> Hold & Drag</div>
+      <div class="small"><b>Zoom:</b> Wheel or +/-</div>
+      <div class="small"><b>Show/Hide Grid:</b> G</div>
+      <div class="small"><b>Reset View:</b> R</div>
+    </div>
+    <div class="mobile-instructions">
+      <div class="small"><b>Pan:</b> Drag with one finger</div>
+      <div class="small"><b>Zoom:</b> Pinch with two fingers</div>
+    </div>
     <div class="attribution">
       <a href="https://github.com/shirleyman/live-tile" title="View on GitHub" class="credit-link">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -263,9 +335,12 @@
       </a>
     </div>
   </div>
+
 <canvas id="colorSampler"></canvas>
 <input type="file" id="fallbackFileInput" accept="image/*" />
+
 <script>
+/* ========== Configuration ========== */
 const config = {
   MIN_N: 0.25,
   MAX_N: 10,
@@ -276,10 +351,13 @@ const config = {
   LUMINANCE_SAMPLE_MAX_DIMENSION: 64,
   LIGHT_GRID_COLOR: 'rgba(255,255,255,0.25)',
   DARK_GRID_COLOR: 'rgba(0,0,0,0.25)',
+  // Slider mapping
   LOG_MIN_N: Math.log(0.25),
   LOG_MAX_N: Math.log(10),
   SLIDER_MAX: 1000,
 };
+
+/* ========== State ========== */
 let N = config.DEFAULT_N;
 let fileHandle = null;
 let lastModified = 0;
@@ -289,12 +367,18 @@ let pollTimer = null;
 let gridVisible = false;
 let gridLineColor = config.DARK_GRID_COLOR;
 let imageSize = { width: 0, height: 0 };
+
+// Panning state
 let isPanning = false;
 let panStart = { x: 0, y: 0 };
 let panOffset = { x: 0, y: 0 };
 let panOffsetAtDragStart = { x: 0, y: 0 };
+
+// Touch state
 let pinchState = null;
 const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+/* ========== DOM Elements ========== */
 const stage = document.getElementById('stage');
 const zoomDisplay = document.getElementById('zoomDisplay');
 const zoomSlider = document.getElementById('zoomSlider');
@@ -305,55 +389,591 @@ const clearBtn = document.getElementById('clearBtn');
 const gridToggleBtn = document.getElementById('gridToggleBtn');
 const resetViewBtn = document.getElementById('resetViewBtn');
 const fileStatus = document.getElementById('fileStatus');
+const fileNameEl = document.getElementById('fileName');
 const fileNameText = document.getElementById('fileNameText');
 const fileIcon = document.getElementById('fileIcon');
 const warningIcon = document.getElementById('warningIcon');
 const noFileIcon = document.getElementById('noFileIcon');
 const fallbackFileInput = document.getElementById('fallbackFileInput');
+
+/* ========== Helpers ========== */
 function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-function showOverlay(text, duration=700){ zoomOverlay.textContent = text; zoomOverlay.classList.add('show'); clearTimeout(zoomOverlay._to); zoomOverlay._to = setTimeout(()=>zoomOverlay.classList.remove('show'), duration); }
-function getEffectiveZoom() { if (objectURL && imageSize.width > 0) { const stageRect = stage.getBoundingClientRect(); return stageRect.width / (N * imageSize.width); } return null; }
-function showZoomOverlay() { const zoom = getEffectiveZoom(); if (zoom !== null) showOverlay(`${zoom.toFixed(1)}x Zoom`); }
-function updateZoomDisplay() { const zoom = getEffectiveZoom(); zoomDisplay.textContent = zoom !== null ? `${zoom.toFixed(1)}x` : '1.0x'; }
-function updateZoomSlider() { if (!objectURL) { zoomSlider.value = 0; return; } const logN = Math.log(N); const percentage = (logN - config.LOG_MIN_N) / (config.LOG_MAX_N - config.LOG_MIN_N); zoomSlider.value = (1 - percentage) * config.SLIDER_MAX; }
-function updateMetaFile(name){ fileIcon.style.display='none'; warningIcon.style.display='none'; noFileIcon.style.display='none'; if(name){ fileNameText.textContent=name; if(watching){ fileIcon.style.display='inline'; fileStatus.title='Live reload enabled. Image will update when file changes are detected.'; } else { warningIcon.style.display='inline'; fileStatus.title='Live reload not supported for this browser.'; } } else { fileNameText.textContent='No file'; noFileIcon.style.display='inline'; fileStatus.title='No image loaded.'; } }
-function updateControlsState(){ const hasImage=!!objectURL; zoomDisplay.classList.toggle('disabled',!hasImage); zoomSlider.disabled=!hasImage; gridToggleBtn.disabled=!hasImage; resetViewBtn.disabled=!hasImage; clearBtn.disabled=!hasImage; }
-function updatePanPosition(){ const pos=`${panOffset.x}px ${panOffset.y}px`; if(!stage.style.backgroundImage||stage.style.backgroundImage==='none') return; const numLayers=stage.style.backgroundImage.split(',').length; stage.style.backgroundPosition=Array(numLayers).fill(pos).join(', '); }
-function updateStageBackground(){ const stageRect=stage.getBoundingClientRect(); if(stageRect.width===0){ setTimeout(updateStageBackground,50); return; } let imageTileWidth=0,imageTileHeight=0; if(objectURL&&imageSize.width>0){ const imageAspectRatio=imageSize.width/imageSize.height; imageTileWidth=stageRect.width/N; imageTileHeight=imageTileWidth/imageAspectRatio; } const bgImages=[],bgSizes=[],bgRepeats=[]; if(gridVisible&&imageTileWidth>0){ bgImages.push(`linear-gradient(${gridLineColor} 1px, transparent 1px)`); bgSizes.push(`${imageTileWidth}px ${imageTileHeight}px`); bgRepeats.push('repeat'); bgImages.push(`linear-gradient(90deg, ${gridLineColor} 1px, transparent 1px)`); bgSizes.push(`${imageTileWidth}px ${imageTileHeight}px`); bgRepeats.push('repeat'); } if(objectURL&&imageTileWidth>0){ bgImages.push(`url("${objectURL}")`); bgSizes.push(`${imageTileWidth}px ${imageTileHeight}px`); bgRepeats.push('repeat'); } bgImages.push('linear-gradient(180deg, #222, #111)'); bgSizes.push('cover'); bgRepeats.push('no-repeat'); stage.style.backgroundImage=bgImages.join(', '); stage.style.backgroundSize=bgSizes.join(', '); stage.style.backgroundRepeat=bgRepeats.join(', '); updatePanPosition(); }
-function resetState(){ stopPolling(); if(objectURL){ URL.revokeObjectURL(objectURL); objectURL=null; } fileHandle=null; imageSize={width:0,height:0}; panOffset={x:0,y:0}; N=config.DEFAULT_N; updateZoomDisplay(); updateZoomSlider(); updateStageBackground(); updateMetaFile(null); updateControlsState(); dropHint.style.display='flex'; }
-function resetView(){ panOffset={x:0,y:0}; if(objectURL&&imageSize.width>0){ const stageRect=stage.getBoundingClientRect(); N=clamp(stageRect.width/imageSize.width,config.MIN_N,config.MAX_N); } else N=config.DEFAULT_N; updateZoomDisplay(); updateZoomSlider(); updateStageBackground(); showOverlay('Reset View'); }
-function toggleGrid(){ gridVisible=!gridVisible; updateStageBackground(); gridToggleBtn.classList.toggle('active',gridVisible); }
-function finalizeImageLoad(resetView){ const stageRect=stage.getBoundingClientRect(); if(stageRect.width===0){ setTimeout(()=>finalizeImageLoad(resetView),50); return; } if(resetView){ panOffset={x:0,y:0}; N=clamp(stageRect.width/imageSize.width,config.MIN_N,config.MAX_N); } updateStageBackground(); updateZoomDisplay(); updateZoomSlider(); if(resetView) showZoomOverlay(); }
-function refreshTiles(newUrl,{resetView=false}={}){ if(objectURL&&objectURL!==newUrl) URL.revokeObjectURL(objectURL); objectURL=newUrl; const img=new Image(); img.onload=()=>{ imageSize={width:img.naturalWidth,height:img.naturalHeight}; const canvas=document.getElementById('colorSampler'); const ctx=canvas.getContext('2d',{willReadFrequently:true}); const sampleScale=Math.min(1,config.LUMINANCE_SAMPLE_MAX_DIMENSION/Math.max(img.naturalWidth,img.naturalHeight)); const sampleWidth=Math.max(1,Math.round(img.naturalWidth*sampleScale)); const sampleHeight=Math.max(1,Math.round(img.naturalHeight*sampleScale)); canvas.width=sampleWidth; canvas.height=sampleHeight; ctx.drawImage(img,0,0,sampleWidth,sampleHeight); const data=ctx.getImageData(0,0,canvas.width,canvas.height).data; let totalLuminance=0; for(let i=0;i<data.length;i+=4) totalLuminance+=0.2126*data[i]+0.7152*data[i+1]+0.0722*data[i+2]; const avgLuminance=totalLuminance/(data.length/4); gridLineColor=avgLuminance<config.LUMINANCE_THRESHOLD?config.LIGHT_GRID_COLOR:config.DARK_GRID_COLOR; finalizeImageLoad(resetView); }; img.onerror=()=>{ console.error('Failed to load image for color analysis.'); gridLineColor=config.DARK_GRID_COLOR; updateStageBackground(); }; img.src=newUrl; dropHint.style.display='none'; updateControlsState(); }
-async function loadFileFromHandle(handle){ fileHandle=handle; if(!fileHandle) return; try{ const permission=await fileHandle.queryPermission({mode:'read'}); if(permission!=='granted') await fileHandle.requestPermission({mode:'read'}); const file=await fileHandle.getFile(); lastModified=file.lastModified||Date.now(); refreshTiles(URL.createObjectURL(file),{resetView:true}); watching=true; updateMetaFile(fileHandle.name); startPolling(); }catch(err){ console.error('Error loading file:',err); alert('Could not load the file. Please try again.'); } }
-function startPolling(){ if(!fileHandle){ watching=false; return; } watching=true; updateMetaFile(fileHandle.name); if(pollTimer) clearTimeout(pollTimer); const poll=async()=>{ if(!watching||!fileHandle) return; try{ const f=await fileHandle.getFile(); if(f&&f.lastModified!==lastModified){ lastModified=f.lastModified; refreshTiles(URL.createObjectURL(f),{resetView:false}); } }catch(err){ console.warn('Polling error',err); stopPolling(); return; } if(watching&&fileHandle) pollTimer=setTimeout(poll,config.POLL_MS); }; pollTimer=setTimeout(poll,config.POLL_MS); }
-function stopPolling(){ if(pollTimer){ clearTimeout(pollTimer); pollTimer=null; } watching=false; updateMetaFile(fileHandle?fileHandle.name||'file':null); }
-function preventEv(e){ e.preventDefault(); e.stopPropagation(); }
-['dragenter','dragover','dragleave','drop'].forEach(ev=>window.addEventListener(ev,preventEv));
-window.addEventListener('drop',async ev=>{ preventEv(ev); const dt=ev.dataTransfer; if(!dt) return; if(dt.items&&dt.items[0]&&typeof dt.items[0].getAsFileSystemHandle==='function'){ try{ const handle=await dt.items[0].getAsFileSystemHandle(); if(handle&&handle.kind==='file'){ await loadFileFromHandle(handle); return; } }catch(err){ console.warn('Could not get file handle from drop',err); } } const file=dt.files&&dt.files[0]; if(file&&file.type.startsWith('image/')){ stopPolling(); fileHandle=null; refreshTiles(URL.createObjectURL(file),{resetView:true}); updateMetaFile(file.name); } else alert('Please drop an image file (PNG / JPEG).'); });
-chooseFileBtn.addEventListener('click',async()=>{ if(window.showOpenFilePicker){ try{ const [handle]=await window.showOpenFilePicker({types:[{description:'Images',accept:{'image/*':['.png','.jpg','.jpeg','.webp','.bmp']}}],excludeAcceptAllOption:false,multiple:false}); if(handle) await loadFileFromHandle(handle); }catch(err){ console.error('File picker cancelled or failed',err); } } else fallbackFileInput.click(); });
-fallbackFileInput.addEventListener('change',e=>{ const file=e.target.files&&e.target.files[0]; if(file){ stopPolling(); fileHandle=null; refreshTiles(URL.createObjectURL(file),{resetView:true}); updateMetaFile(file.name); fallbackFileInput.value=''; } });
-clearBtn.addEventListener('click',resetState);
-gridToggleBtn.addEventListener('click',toggleGrid);
-resetViewBtn.addEventListener('click',resetView);
-zoomSlider.addEventListener('input',e=>{ if(!objectURL) return; const percentage=e.target.value/config.SLIDER_MAX; const logN=config.LOG_MIN_N+(1-percentage)*(config.LOG_MAX_N-config.LOG_MIN_N); setN(Math.exp(logN),{fromUser:false}); });
-function setN(newN,{fromUser=true}={}){ const oldN=N; const clamped=clamp(newN,config.MIN_N,config.MAX_N); if(clamped===N){ updateZoomSlider(); return; } N=clamped; if(objectURL){ const stageRect=stage.getBoundingClientRect(); const anchorX=stageRect.width/2,anchorY=stageRect.height/2,ratio=oldN/N; panOffset.x=anchorX*(1-ratio)+panOffset.x*ratio; panOffset.y=anchorY*(1-ratio)+panOffset.y*ratio; } updateZoomDisplay(); updateZoomSlider(); updateStageBackground(); if(fromUser) showZoomOverlay(); }
-window.addEventListener('keydown',e=>{ if(e.key==='+'||e.key==='='){ e.preventDefault(); setN(N+1); } else if(e.key==='-'){ e.preventDefault(); setN(N-1); } else if(e.key==='Home'){ e.preventDefault(); setN(config.MIN_N); } else if(e.key==='End'){ e.preventDefault(); setN(config.MAX_N); } else if(e.key==='g'||e.key==='G'){ e.preventDefault(); toggleGrid(); } else if(e.key==='r'||e.key==='R'){ e.preventDefault(); resetView(); } });
-stage.addEventListener('wheel',e=>{ e.preventDefault(); if(e.deltaY===0) return; setN(e.deltaY<0?N/config.ZOOM_AMOUNT:N*config.ZOOM_AMOUNT); },{passive:false});
-stage.addEventListener('mousedown',e=>{ if((e.button===0||e.button===1)&&objectURL){ e.preventDefault(); isPanning=true; panStart.x=e.clientX; panStart.y=e.clientY; panOffsetAtDragStart.x=panOffset.x; panOffsetAtDragStart.y=panOffset.y; stage.style.cursor='grabbing'; } });
-window.addEventListener('mousemove',e=>{ if(isPanning){ e.preventDefault(); panOffset.x=panOffsetAtDragStart.x+(e.clientX-panStart.x); panOffset.y=panOffsetAtDragStart.y+(e.clientY-panStart.y); updatePanPosition(); } });
-window.addEventListener('mouseup',e=>{ if(isPanning&&(e.button===0||e.button===1)){ isPanning=false; stage.style.cursor='default'; } });
-function getDistance(t1,t2){ return Math.hypot(t2.clientX-t1.clientX,t2.clientY-t1.clientY); }
-stage.addEventListener('touchstart',ev=>{ if(!objectURL) return; preventEv(ev); if(ev.touches.length===1){ const touch=ev.touches[0]; isPanning=true; panStart.x=touch.clientX; panStart.y=touch.clientY; panOffsetAtDragStart.x=panOffset.x; panOffsetAtDragStart.y=panOffset.y; pinchState=null; } else if(ev.touches.length===2){ isPanning=false; pinchState={startDist:getDistance(ev.touches[0],ev.touches[1]),startN:N}; } },{passive:false});
-stage.addEventListener('touchmove',ev=>{ if(!objectURL) return; preventEv(ev); if(isPanning&&ev.touches.length===1){ const touch=ev.touches[0]; panOffset.x=panOffsetAtDragStart.x+(touch.clientX-panStart.x); panOffset.y=panOffsetAtDragStart.y+(touch.clientY-panStart.y); updatePanPosition(); } else if(pinchState&&ev.touches.length===2){ const curDist=getDistance(ev.touches[0],ev.touches[1]); if(pinchState.startDist>0) setN(pinchState.startN/(curDist/pinchState.startDist),{fromUser:false}); } },{passive:false});
-stage.addEventListener('touchend',ev=>{ if(ev.touches.length===0){ isPanning=false; pinchState=null; } else if(ev.touches.length===1){ pinchState=null; const touch=ev.touches[0]; isPanning=true; panStart.x=touch.clientX; panStart.y=touch.clientY; panOffsetAtDragStart.x=panOffset.x; panOffsetAtDragStart.y=panOffset.y; } });
+
+function showOverlay(text, duration=700){
+  zoomOverlay.textContent = text;
+  zoomOverlay.classList.add('show');
+  clearTimeout(zoomOverlay._to);
+  zoomOverlay._to = setTimeout(()=>zoomOverlay.classList.remove('show'), duration);
+}
+
+function getEffectiveZoom() {
+  if (objectURL && imageSize.width > 0) {
+    const stageRect = stage.getBoundingClientRect();
+    return stageRect.width / (N * imageSize.width);
+  }
+  return null;
+}
+
+function showZoomOverlay() {
+  const zoom = getEffectiveZoom();
+  if (zoom !== null) {
+    showOverlay(`${zoom.toFixed(1)}x Zoom`);
+  }
+}
+
+function updateZoomDisplay() {
+  const zoom = getEffectiveZoom();
+  if (zoom !== null) {
+    zoomDisplay.textContent = `${zoom.toFixed(1)}x`;
+  } else {
+    zoomDisplay.textContent = '1.0x';
+  }
+}
+
+function updateZoomSlider() {
+    if (!objectURL) {
+        zoomSlider.value = 0; // Default to minimum zoom
+        return;
+    }
+    const logN = Math.log(N);
+    const percentage = (logN - config.LOG_MIN_N) / (config.LOG_MAX_N - config.LOG_MIN_N);
+    const reversedPercentage = 1 - percentage;
+    zoomSlider.value = reversedPercentage * config.SLIDER_MAX;
+}
+
+
+function updateMetaFile(name){
+  // Hide all icons by default
+  fileIcon.style.display = 'none';
+  warningIcon.style.display = 'none';
+  noFileIcon.style.display = 'none';
+
+  if (name) { // File is loaded
+    fileNameText.textContent = name;
+    if (watching) {
+      fileIcon.style.display = 'inline';
+      fileStatus.title = 'Live reload enabled. Image will update when file changes are detected.';
+    } else {
+      warningIcon.style.display = 'inline';
+      fileStatus.title = 'Live reload not supported for this browser.';
+    }
+  } else { // No file is loaded
+    fileNameText.textContent = 'No file';
+    noFileIcon.style.display = 'inline';
+    fileStatus.title = 'No image loaded.';
+  }
+}
+
+function updateControlsState() {
+  const hasImage = !!objectURL;
+  zoomDisplay.classList.toggle('disabled', !hasImage);
+  zoomSlider.disabled = !hasImage;
+  gridToggleBtn.disabled = !hasImage;
+  resetViewBtn.disabled = !hasImage;
+  clearBtn.disabled = !hasImage;
+}
+
+/* ========== Core Logic ========== */
+function updatePanPosition() {
+  const pos = `${panOffset.x}px ${panOffset.y}px`;
+  if (!stage.style.backgroundImage || stage.style.backgroundImage === 'none') {
+    return;
+  }
+  const numLayers = stage.style.backgroundImage.split(',').length;
+  stage.style.backgroundPosition = Array(numLayers).fill(pos).join(', ');
+}
+
+function updateStageBackground() {
+    const stageRect = stage.getBoundingClientRect();
+    if (stageRect.width === 0) { setTimeout(updateStageBackground, 50); return; }
+
+    let imageTileWidth = 0;
+    let imageTileHeight = 0;
+
+    if (objectURL && imageSize.width > 0) {
+        const imageAspectRatio = imageSize.width / imageSize.height;
+        imageTileWidth = stageRect.width / N;
+        imageTileHeight = imageTileWidth / imageAspectRatio;
+    }
+
+    const bgImages = [];
+    const bgSizes = [];
+    const bgRepeats = [];
+
+    if (gridVisible && imageTileWidth > 0) {
+        bgImages.push(`linear-gradient(${gridLineColor} 1px, transparent 1px)`);
+        bgSizes.push(`${imageTileWidth}px ${imageTileHeight}px`);
+        bgRepeats.push('repeat');
+        bgImages.push(`linear-gradient(90deg, ${gridLineColor} 1px, transparent 1px)`);
+        bgSizes.push(`${imageTileWidth}px ${imageTileHeight}px`);
+        bgRepeats.push('repeat');
+    }
+
+    if (objectURL && imageTileWidth > 0) {
+        bgImages.push(`url("${objectURL}")`);
+        bgSizes.push(`${imageTileWidth}px ${imageTileHeight}px`);
+        bgRepeats.push('repeat');
+    }
+
+    bgImages.push('linear-gradient(180deg, #222, #111)');
+    bgSizes.push('cover');
+    bgRepeats.push('no-repeat');
+
+    stage.style.backgroundImage = bgImages.join(', ');
+    stage.style.backgroundSize = bgSizes.join(', ');
+    stage.style.backgroundRepeat = bgRepeats.join(', ');
+
+    updatePanPosition();
+}
+
+function resetState() {
+  stopPolling();
+  if (objectURL) {
+    URL.revokeObjectURL(objectURL);
+    objectURL = null;
+  }
+  fileHandle = null;
+  imageSize = { width: 0, height: 0 };
+  panOffset = { x: 0, y: 0 };
+  N = config.DEFAULT_N;
+  updateZoomDisplay();
+  updateZoomSlider();
+  updateStageBackground();
+  updateMetaFile(null);
+  updateControlsState();
+  dropHint.style.display = 'flex';
+}
+
+function resetView() {
+  panOffset = { x: 0, y: 0 };
+  if (objectURL && imageSize.width > 0) {
+    const stageRect = stage.getBoundingClientRect();
+    const newN = stageRect.width / imageSize.width;
+    N = clamp(newN, config.MIN_N, config.MAX_N);
+  } else {
+    N = config.DEFAULT_N;
+  }
+  updateZoomDisplay();
+  updateZoomSlider();
+  updateStageBackground();
+  showOverlay('Reset View');
+}
+
+function toggleGrid() {
+  gridVisible = !gridVisible;
+  updateStageBackground();
+  gridToggleBtn.classList.toggle('active', gridVisible);
+}
+
+function finalizeImageLoad(resetView) {
+  const stageRect = stage.getBoundingClientRect();
+  if (stageRect.width === 0) {
+    setTimeout(() => finalizeImageLoad(resetView), 50);
+    return;
+  }
+
+  if (resetView) {
+    panOffset = { x: 0, y: 0 };
+    const newN = stageRect.width / imageSize.width;
+    N = clamp(newN, config.MIN_N, config.MAX_N);
+  }
+
+  updateStageBackground();
+  updateZoomDisplay();
+  updateZoomSlider();
+  if (resetView) {
+    showZoomOverlay();
+  }
+}
+
+function refreshTiles(newUrl, { resetView = false } = {}){
+  if(objectURL && objectURL !== newUrl){ URL.revokeObjectURL(objectURL); }
+  objectURL = newUrl;
+
+  const img = new Image();
+  img.onload = () => {
+    imageSize = { width: img.naturalWidth, height: img.naturalHeight };
+
+    const canvas = document.getElementById('colorSampler');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const sampleScale = Math.min(
+      1,
+      config.LUMINANCE_SAMPLE_MAX_DIMENSION / Math.max(img.naturalWidth, img.naturalHeight)
+    );
+    const sampleWidth = Math.max(1, Math.round(img.naturalWidth * sampleScale));
+    const sampleHeight = Math.max(1, Math.round(img.naturalHeight * sampleScale));
+    canvas.width = sampleWidth;
+    canvas.height = sampleHeight;
+    ctx.drawImage(img, 0, 0, sampleWidth, sampleHeight);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    let totalLuminance = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const luminance = 0.2126 * data[i] + 0.7152 * data[i+1] + 0.0722 * data[i+2];
+      totalLuminance += luminance;
+    }
+    const avgLuminance = totalLuminance / (data.length / 4);
+
+    gridLineColor = (avgLuminance < config.LUMINANCE_THRESHOLD) ? config.LIGHT_GRID_COLOR : config.DARK_GRID_COLOR;
+
+    finalizeImageLoad(resetView);
+  };
+  img.onerror = () => {
+    console.error("Failed to load image for color analysis.");
+    gridLineColor = config.DARK_GRID_COLOR;
+    updateStageBackground();
+  }
+  img.src = newUrl;
+
+  dropHint.style.display = 'none';
+  updateControlsState();
+}
+
+/* ========== File Handling & System ========== */
+async function loadFileFromHandle(handle) {
+  fileHandle = handle;
+  if (!fileHandle) return;
+
+  try {
+    const permission = await fileHandle.queryPermission({ mode: 'read' });
+    if (permission !== 'granted') {
+      await fileHandle.requestPermission({ mode: 'read' });
+    }
+
+    const file = await fileHandle.getFile();
+    lastModified = file.lastModified || Date.now();
+    const url = URL.createObjectURL(file);
+    refreshTiles(url, { resetView: true });
+    watching = true;
+    updateMetaFile(fileHandle.name);
+    startPolling();
+  } catch (err) {
+    console.error('Error loading file:', err);
+    alert('Could not load the file. Please try again.');
+  }
+}
+
+function startPolling() {
+  if (!fileHandle) {
+    watching = false;
+    return;
+  }
+
+  watching = true;
+  updateMetaFile(fileHandle.name);
+  if (pollTimer) clearTimeout(pollTimer);
+
+  const poll = async () => {
+    if (!watching || !fileHandle) return;
+
+    try {
+      const f = await fileHandle.getFile();
+      if (f && f.lastModified !== lastModified) {
+        lastModified = f.lastModified;
+        const url = URL.createObjectURL(f);
+        refreshTiles(url, { resetView: false });
+      }
+    } catch (err) {
+      console.warn('Polling error', err);
+      stopPolling();
+      return;
+    }
+
+    if (watching && fileHandle) {
+      pollTimer = setTimeout(poll, config.POLL_MS);
+    }
+  };
+
+  pollTimer = setTimeout(poll, config.POLL_MS);
+}
+
+function stopPolling() {
+  if (pollTimer) {
+    clearTimeout(pollTimer);
+    pollTimer = null;
+  }
+  watching = false;
+  updateMetaFile(fileHandle ? fileHandle.name || 'file' : null);
+}
+
+/* ========== Event Listeners ========== */
+function preventEv(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+  window.addEventListener(ev, preventEv);
+});
+
+window.addEventListener('drop', async ev => {
+  preventEv(ev);
+  const dt = ev.dataTransfer;
+  if (!dt) return;
+
+  if (dt.items && dt.items[0] && typeof dt.items[0].getAsFileSystemHandle === 'function') {
+    try {
+      const handle = await dt.items[0].getAsFileSystemHandle();
+      if (handle && handle.kind === 'file') {
+        await loadFileFromHandle(handle);
+        return;
+      }
+    } catch (err) {
+      console.warn('Could not get file handle from drop', err);
+    }
+  }
+
+  const file = dt.files && dt.files[0];
+  if (file && file.type.startsWith('image/')) {
+    stopPolling();
+    fileHandle = null;
+
+    const url = URL.createObjectURL(file);
+    refreshTiles(url, { resetView: true });
+    updateMetaFile(file.name);
+  } else {
+    alert('Please drop an image file (PNG / JPEG).');
+  }
+});
+
+chooseFileBtn.addEventListener('click', async () => {
+  if (window.showOpenFilePicker) {
+    try {
+      const [handle] = await window.showOpenFilePicker({
+        types: [{
+          description: 'Images',
+          accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.bmp'] },
+        }],
+        excludeAcceptAllOption: false,
+        multiple: false,
+      });
+      if (handle) {
+        await loadFileFromHandle(handle);
+      }
+    } catch (err) {
+      console.error('File picker cancelled or failed', err);
+    }
+  } else {
+    fallbackFileInput.click();
+  }
+});
+
+fallbackFileInput.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (file) {
+    stopPolling();
+    fileHandle = null;
+
+    const url = URL.createObjectURL(file);
+    refreshTiles(url, { resetView: true });
+    updateMetaFile(file.name);
+
+    // Reset the input so the same file can be chosen again
+    fallbackFileInput.value = '';
+  }
+});
+
+clearBtn.addEventListener('click', () => {
+  resetState();
+});
+
+gridToggleBtn.addEventListener('click', () => {
+  toggleGrid();
+});
+
+resetViewBtn.addEventListener('click', () => {
+  resetView();
+});
+
+zoomSlider.addEventListener('input', (e) => {
+    if (!objectURL) return;
+    const sliderValue = e.target.value;
+    const percentage = sliderValue / config.SLIDER_MAX;
+    const reversedPercentage = 1 - percentage;
+    const logN = config.LOG_MIN_N + reversedPercentage * (config.LOG_MAX_N - config.LOG_MIN_N);
+    const newN = Math.exp(logN);
+    setN(newN, { fromUser: false });
+});
+
+function setN(newN, { fromUser=true } = {}){
+  const oldN = N;
+  const clamped = clamp(newN, config.MIN_N, config.MAX_N);
+  if(clamped === N) {
+    // even if N doesn't change, the slider might need syncing if the call came from a non-slider source
+    updateZoomSlider();
+    return;
+  };
+  N = clamped;
+
+  if (objectURL) {
+    const stageRect = stage.getBoundingClientRect();
+    const anchorX = stageRect.width / 2;
+    const anchorY = stageRect.height / 2;
+    const ratio = oldN / N;
+
+    panOffset.x = anchorX * (1 - ratio) + panOffset.x * ratio;
+    panOffset.y = anchorY * (1 - ratio) + panOffset.y * ratio;
+  }
+
+  updateZoomDisplay();
+  updateZoomSlider();
+  updateStageBackground();
+
+  if(fromUser) {
+    showZoomOverlay();
+  }
+}
+
+window.addEventListener('keydown', (e)=>{
+  if(e.key === '+' || e.key === '=' ){
+    e.preventDefault();
+    setN(N+1);
+  } else if(e.key === '-' ){
+    e.preventDefault();
+    setN(N-1);
+  } else if(e.key === 'Home'){
+    e.preventDefault();
+    setN(config.MIN_N);
+  } else if(e.key === 'End'){
+    e.preventDefault();
+    setN(config.MAX_N);
+  } else if (e.key === 'g' || e.key === 'G') {
+    e.preventDefault();
+    toggleGrid();
+  } else if (e.key === 'r' || e.key === 'R') {
+    e.preventDefault();
+    resetView();
+  }
+});
+
+stage.addEventListener('wheel', (e)=>{
+  e.preventDefault();
+  const delta = e.deltaY;
+  if(delta === 0) return;
+  if(delta < 0){
+    setN(N / config.ZOOM_AMOUNT);
+  } else {
+    setN(N * config.ZOOM_AMOUNT);
+  }
+}, { passive:false });
+
+/* ========== Panning (left/middle mouse) ========== */
+stage.addEventListener('mousedown', (e)=>{
+  // Allow panning with left (0) or middle (1) mouse button
+  if ((e.button === 0 || e.button === 1) && objectURL) {
+    e.preventDefault();
+    isPanning = true;
+    panStart.x = e.clientX;
+    panStart.y = e.clientY;
+    panOffsetAtDragStart.x = panOffset.x;
+    panOffsetAtDragStart.y = panOffset.y;
+    stage.style.cursor = 'grabbing';
+  }
+});
+
+window.addEventListener('mousemove', (e)=>{
+  if (isPanning) {
+    e.preventDefault();
+    const dx = e.clientX - panStart.x;
+    const dy = e.clientY - panStart.y;
+    panOffset.x = panOffsetAtDragStart.x + dx;
+    panOffset.y = panOffsetAtDragStart.y + dy;
+    updatePanPosition();
+  }
+});
+
+window.addEventListener('mouseup', (e)=>{
+  // Stop panning on left (0) or middle (1) mouse button release
+  if (isPanning && (e.button === 0 || e.button === 1)) {
+    isPanning = false;
+    stage.style.cursor = 'default';
+  }
+});
+
+function getDistance(t1, t2){
+  const dx = t2.clientX - t1.clientX;
+  const dy = t2.clientY - t1.clientY;
+  return Math.hypot(dx, dy);
+}
+
+stage.addEventListener('touchstart', (ev) => {
+  if (!objectURL) return;
+  preventEv(ev);
+
+  if (ev.touches.length === 1) {
+    const touch = ev.touches[0];
+    isPanning = true;
+    panStart.x = touch.clientX;
+    panStart.y = touch.clientY;
+    panOffsetAtDragStart.x = panOffset.x;
+    panOffsetAtDragStart.y = panOffset.y;
+    pinchState = null; // Ensure no pinch state
+  } else if (ev.touches.length === 2) {
+    isPanning = false; // Stop panning if a second finger is added
+    pinchState = {
+      startDist: getDistance(ev.touches[0], ev.touches[1]),
+      startN: N,
+    };
+  }
+}, { passive: false });
+
+stage.addEventListener('touchmove', (ev) => {
+  if (!objectURL) return;
+  preventEv(ev);
+
+  if (isPanning && ev.touches.length === 1) {
+    const touch = ev.touches[0];
+    const dx = touch.clientX - panStart.x;
+    const dy = touch.clientY - panStart.y;
+    panOffset.x = panOffsetAtDragStart.x + dx;
+    panOffset.y = panOffsetAtDragStart.y + dy;
+    updatePanPosition();
+  } else if (pinchState && ev.touches.length === 2) {
+    const curDist = getDistance(ev.touches[0], ev.touches[1]);
+    const ratio = curDist / pinchState.startDist;
+    if (pinchState.startDist > 0) {
+      const newN = pinchState.startN / ratio;
+      setN(newN, { fromUser: false });
+    }
+  }
+}, { passive: false });
+
+stage.addEventListener('touchend', (ev) => {
+  if (ev.touches.length === 0) {
+    // All fingers lifted
+    isPanning = false;
+    pinchState = null;
+  } else if (ev.touches.length === 1) {
+    // One finger remains (e.g., after a pinch)
+    pinchState = null;
+    // Start panning with the remaining finger
+    const touch = ev.touches[0];
+    isPanning = true;
+    panStart.x = touch.clientX;
+    panStart.y = touch.clientY;
+    panOffsetAtDragStart.x = panOffset.x;
+    panOffsetAtDragStart.y = panOffset.y;
+  }
+});
+
+/* ========== Initialization ========== */
 updateZoomDisplay();
 updateZoomSlider();
 updateStageBackground();
 updateMetaFile(null);
 updateControlsState();
-if(isTouchDevice) document.querySelector('.desktop-instructions').style.display='none'; else document.querySelector('.mobile-instructions').style.display='none';
-window._liveGrid={setN,updateStageBackground};
+
+if (isTouchDevice) {
+  document.querySelector('.desktop-instructions').style.display = 'none';
+}
+else {
+  document.querySelector('.mobile-instructions').style.display = 'none';
+}
+
+/* Expose minimal public API for debug (optional) */
+window._liveGrid = {
+  setN, updateStageBackground
+};
 </script>
 </body>
 </html>
