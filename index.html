@@ -557,6 +557,10 @@ function resetState() {
 function resetView() {
   wheelSuppressedUntilIdle = true;
   clearTimeout(wheelIdleTimer);
+  wheelIdleTimer = setTimeout(() => {
+    wheelSuppressedUntilIdle = false;
+    wheelIdleTimer = null;
+  }, 120);
   panOffset = { x: 0, y: 0 };
   if (objectURL && imageSize.width > 0) {
     const stageRect = stage.getBoundingClientRect();
