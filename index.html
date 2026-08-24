@@ -375,8 +375,7 @@ let pollTimer = null;
 let watchStatusMessage = null;
 let wheelSuppressedUntilIdle = false;
 let wheelIdleTimer = null;
-let wheelSuppressionStartedAt = 0;
-let lastSuppressedWheelMagnitude = 0;
+let lastWheelEventAt = 0;
 let gridVisible = false;
 let gridLineColor = config.DARK_GRID_COLOR;
 let imageSize = { width: 0, height: 0 };
@@ -456,12 +455,11 @@ function updateZoomSlider() {
 
 
 function updateMetaFile(name){
-  // Hide all icons by default
   fileIcon.style.display = 'none';
   warningIcon.style.display = 'none';
   noFileIcon.style.display = 'none';
 
-  if (name) { // File is loaded
+  if (name) {
     fileNameText.textContent = watchStatusMessage ? `${name} — Live reload stopped` : name;
     if (watching) {
       fileIcon.style.display = 'inline';
@@ -470,7 +468,7 @@ function updateMetaFile(name){
       warningIcon.style.display = 'inline';
       fileStatus.title = watchStatusMessage || 'Live reload not supported for this browser.';
     }
-  } else { // No file is loaded
+  } else {
     fileNameText.textContent = 'No file';
     noFileIcon.style.display = 'inline';
     fileStatus.title = 'No image loaded.';
@@ -558,13 +556,12 @@ function resetState() {
 
 function resetView() {
   wheelSuppressedUntilIdle = true;
-  wheelSuppressionStartedAt = performance.now();
-  lastSuppressedWheelMagnitude = 0;
+  lastWheelEventAt = performance.now();
   clearTimeout(wheelIdleTimer);
   wheelIdleTimer = setTimeout(() => {
     wheelSuppressedUntilIdle = false;
     wheelIdleTimer = null;
-  }, 120);
+  }, 100);
   panOffset = { x: 0, y: 0 };
   if (objectURL && imageSize.width > 0) {
     const stageRect = stage.getBoundingClientRect();
@@ -834,7 +831,6 @@ fallbackFileInput.addEventListener('change', (e) => {
       }
     });
 
-    // Reset the input so the same file can be chosen again
     fallbackFileInput.value = '';
   }
 });
@@ -865,7 +861,6 @@ function setN(newN, { fromUser=true } = {}){
   const oldN = N;
   const clamped = clamp(newN, config.MIN_N, config.MAX_N);
   if(clamped === N) {
-    // even if N doesn't change, the slider might need syncing if the call came from a non-slider source
     updateZoomSlider();
     return;
   };
@@ -915,23 +910,21 @@ window.addEventListener('keydown', (e)=>{
 stage.addEventListener('wheel', (e)=>{
   e.preventDefault();
 
-  const magnitude = Math.abs(e.deltaY);
+  const now = performance.now();
+  const gap = now - lastWheelEventAt;
+  lastWheelEventAt = now;
 
   if (wheelSuppressedUntilIdle) {
-    const elapsed = performance.now() - wheelSuppressionStartedAt;
-    const looksLikeNewGesture = lastSuppressedWheelMagnitude > 0 && magnitude > lastSuppressedWheelMagnitude * 1.5;
-
-    if (looksLikeNewGesture || elapsed > 300) {
+    if (gap >= 100) {
       wheelSuppressedUntilIdle = false;
       clearTimeout(wheelIdleTimer);
       wheelIdleTimer = null;
     } else {
-      lastSuppressedWheelMagnitude = magnitude;
       clearTimeout(wheelIdleTimer);
       wheelIdleTimer = setTimeout(() => {
         wheelSuppressedUntilIdle = false;
         wheelIdleTimer = null;
-      }, 120);
+      }, 100);
       return;
     }
   }
@@ -1062,7 +1055,6 @@ else {
   document.querySelector('.mobile-instructions').style.display = 'none';
 }
 
-/* Expose minimal public API for debug (optional) */
 window._liveGrid = {
   setN, updateStageBackground
 };
