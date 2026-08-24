@@ -455,11 +455,12 @@ function updateZoomSlider() {
 
 
 function updateMetaFile(name){
+  // Hide all icons by default
   fileIcon.style.display = 'none';
   warningIcon.style.display = 'none';
   noFileIcon.style.display = 'none';
 
-  if (name) {
+  if (name) { // File is loaded
     fileNameText.textContent = watchStatusMessage ? `${name} — Live reload stopped` : name;
     if (watching) {
       fileIcon.style.display = 'inline';
@@ -468,7 +469,7 @@ function updateMetaFile(name){
       warningIcon.style.display = 'inline';
       fileStatus.title = watchStatusMessage || 'Live reload not supported for this browser.';
     }
-  } else {
+  } else { // No file is loaded
     fileNameText.textContent = 'No file';
     noFileIcon.style.display = 'inline';
     fileStatus.title = 'No image loaded.';
@@ -831,6 +832,7 @@ fallbackFileInput.addEventListener('change', (e) => {
       }
     });
 
+    // Reset the input so the same file can be chosen again
     fallbackFileInput.value = '';
   }
 });
@@ -861,6 +863,7 @@ function setN(newN, { fromUser=true } = {}){
   const oldN = N;
   const clamped = clamp(newN, config.MIN_N, config.MAX_N);
   if(clamped === N) {
+    // even if N doesn't change, the slider might need syncing if the call came from a non-slider source
     updateZoomSlider();
     return;
   };
@@ -1055,6 +1058,7 @@ else {
   document.querySelector('.mobile-instructions').style.display = 'none';
 }
 
+/* Expose minimal public API for debug (optional) */
 window._liveGrid = {
   setN, updateStageBackground
 };
