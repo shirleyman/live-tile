@@ -479,8 +479,7 @@ function updatePanPosition() {
   if (!stage.style.backgroundImage || stage.style.backgroundImage === 'none') {
     return;
   }
-  const numLayers = stage.style.backgroundImage.split(',').length;
-  stage.style.backgroundPosition = Array(numLayers).fill(pos).join(', ');
+  stage.style.backgroundPosition = pos;
 }
 
 function updateStageBackground() {
